@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-two-service
+spec:
+  selector:
+    app: nginx-two
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080

@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-one-deployment
+  labels:
+    app: nginx-one
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: nginx-one
+  template:
+    metadata:
+      labels:
+        app: nginx-one
+    spec:
+      containers:
+      - name: nginx-one
+        image: quay.io/redhattraining/hello-world-nginx:latest
+        ports:
+        - containerPort: 8080
