@@ -1,0 +1,10 @@
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  generateName: grc-dev-
+spec:
+  pipelineRef:
+    name: grc-dev-day-claim
+  params:
+  - name: USER_NAME
+    value: jkulikau

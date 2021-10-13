@@ -1,0 +1,14 @@
+apiVersion: tekton.dev/v1beta1
+kind: TaskRun
+metadata:
+  generateName: lifeguard-claim-run-
+spec:
+  taskRef:
+    name: lifeguard-claim
+  params:
+  - name: CLUSTERCLAIM_NAME
+    value: jkulikau-tekton-test
+  - name: CLUSTERPOOL_NAME
+    value: policy-grc-cp-dev
+  - name: CLUSTERCLAIM_LIFETIME
+    value: 6h

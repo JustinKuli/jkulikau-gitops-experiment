@@ -1,0 +1,38 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: grc-dev-day-claim
+spec:
+  params:
+  - name: USER_NAME
+    type: string
+    description: Will be part of the ClusterClaim name.
+    default: tekton
+  tasks:
+  - name: lifeguard-claim
+    taskRef:
+      name: lifeguard-claim
+    params:
+    - name: CLUSTERCLAIM_NAME
+      value: "$(params.USER_NAME)-$(context.pipelineRun.name)"
+    - name: CLUSTERPOOL_NAME
+      value: policy-grc-cp-dev
+    - name: TARGET_NAMESPACE
+      value: acm-grc-security
+    - name: CLUSTERCLAIM_GROUP_NAME
+      value: policy-grc
+    - name: CLUSTERCLAIM_LIFETIME
+      value: 10h
+  results:
+  - name: clusterclaim-name
+    description: The name of the clusterclaim created.
+    value: $(tasks.lifeguard-claim.results.clusterclaim-name)
+  - name: clusterclaim-namespace
+    description: Namespace where more information (ie credentials) for the cluster is stored.
+    value: $(tasks.lifeguard-claim.results.clusterclaim-namespace)
+  - name: cluster-api-url
+    description: The URL of the API of the created cluster.
+    value: $(tasks.lifeguard-claim.results.cluster-api-url)
+  - name: cluster-console-url
+    description: The URL of the OCP console for the created cluster.
+    value: $(tasks.lifeguard-claim.results.cluster-console-url)

@@ -1,0 +1,60 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: lifeguard-claim
+spec:
+  params:
+  - name: CLUSTERCLAIM_NAME
+    type: string
+    description: chosen name for the ClusterClaim, must be unique and not contain `.`
+  - name: CLUSTERPOOL_NAME
+    type: string
+    description: name of the ClusterPool to create a claim from
+  - name: TARGET_NAMESPACE
+    type: string
+    description: namespace to create a ClusterClaim in (must match the namespace of the ClusterPool)
+    default: acm-grc-security
+  - name: CLUSTERCLAIM_GROUP_NAME
+    type: string
+    description: RBAC group to associate with the ClusterClaim
+    default: policy-grc
+  - name: CLUSTERCLAIM_LIFETIME
+    type: string
+    description: lifetime for the cluster claim before automatic deletion, formatted as `1h2m3s` omitting units as desired (set to "false" to disable)
+    default: "false"
+  steps:
+  - name: claim
+    image: quay.io/dhaiduce/rhacmstackem:latest
+    script: |
+      #!/usr/bin/env bash
+      set -euo pipefail  # exit on errors and unset vars, and stop on the first error in a pipeline
+
+      git clone https://github.com/open-cluster-management/lifeguard.git
+      cd lifeguard/clusterclaims
+      ./apply.sh
+
+      # Use -n, -j, and -r options to write the rawest strings to the result files
+      echo -n "${CLUSTERCLAIM_NAME}" > $(results.clusterclaim-name.path)
+      jq -jr '.spec.namespace' "./${CLUSTERCLAIM_NAME}/.ClusterClaim.json" > $(results.clusterclaim-namespace.path)
+      jq -jr '.api_url' "./${CLUSTERCLAIM_NAME}/${CLUSTERCLAIM_NAME}.creds.json" > $(results.cluster-api-url.path)
+      jq -jr '.console_url' "./${CLUSTERCLAIM_NAME}/${CLUSTERCLAIM_NAME}.creds.json" > $(results.cluster-console-url.path)
+    env:
+    - name: CLUSTERPOOL_TARGET_NAMESPACE
+      value: $(params.TARGET_NAMESPACE)
+    - name: CLUSTERCLAIM_NAME
+      value: $(params.CLUSTERCLAIM_NAME)
+    - name: CLUSTERPOOL_NAME
+      value: $(params.CLUSTERPOOL_NAME)
+    - name: CLUSTERCLAIM_GROUP_NAME
+      value: $(params.CLUSTERCLAIM_GROUP_NAME)
+    - name: CLUSTERCLAIM_LIFETIME
+      value: $(params.CLUSTERCLAIM_LIFETIME)
+  results:
+  - name: clusterclaim-name
+    description: The name of the clusterclaim created.
+  - name: clusterclaim-namespace
+    description: Namespace where more information (ie credentials) for the cluster is stored.
+  - name: cluster-api-url
+    description: The URL of the API of the created cluster.
+  - name: cluster-console-url
+    description: The URL of the OCP console for the created cluster.
