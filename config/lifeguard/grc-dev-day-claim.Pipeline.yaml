@@ -8,6 +8,10 @@ spec:
     type: string
     description: Will be part of the ClusterClaim name.
     default: tekton
+  - name: CLUSTERPOOL_NAME
+    type: string
+    description: name of the ClusterPool to create a claim from
+    default: policy-grc-cp-dev
   tasks:
   - name: lifeguard-claim
     taskRef:
@@ -16,7 +20,7 @@ spec:
     - name: CLUSTERCLAIM_NAME
       value: "$(params.USER_NAME)-$(context.pipelineRun.name)"
     - name: CLUSTERPOOL_NAME
-      value: policy-grc-cp-dev
+      value: "$(params.CLUSTERPOOL_NAME)"
     - name: TARGET_NAMESPACE
       value: acm-grc-security
     - name: CLUSTERCLAIM_GROUP_NAME
