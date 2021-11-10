@@ -1,0 +1,17 @@
+FROM golang:1.17 AS builder
+
+WORKDIR /go/src/echo-server
+COPY main.go ./main.go
+RUN go build -o /go/bin/echo-server main.go
+
+FROM registry.access.redhat.com/ubi8/ubi-minimal:latest
+
+ENV USER_ID=1001 USER_NAME=echoer
+
+COPY --from=builder /go/bin/echo-server /go/bin/echo-server
+COPY ./user_setup.sh /usr/local/bin/user_setup.sh
+RUN /usr/local/bin/user_setup.sh
+
+USER ${USER_UID}
+
+ENTRYPOINT ["/go/bin/echo-server"]
